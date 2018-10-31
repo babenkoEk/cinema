@@ -1,0 +1,14 @@
+@import "_reset";
+@import "_mainScreen";
+@import "_section";
+@import "_hall";
+
+body {
+	font: 12pt sans-serif;
+}
+
+#root {
+	width: 100vw;
+	height: 100vh;
+	overflow: hidden;
+}

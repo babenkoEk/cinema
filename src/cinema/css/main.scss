@@ -1,0 +1,13 @@
+@import "_reset";
+@import "_hall";
+@import "_auditorium";
+@import "_chair";
+
+body {
+	font: 12pt sans-serif;
+}
+
+#root {
+	width: 100vw;
+	height: 100vh;
+}

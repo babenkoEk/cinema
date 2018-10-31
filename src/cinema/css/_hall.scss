@@ -1,0 +1,53 @@
+.hall {
+	display: flex;
+	justify-content: space-around;
+	margin: 50px;
+	padding: 50px 10px 50px 10px;
+	background: #fff;
+	border: 1px solid #999;
+}
+
+.numbering-item {
+	background: #fff;
+	border: 1px solid rgba(0, 0, 0, 0);
+	line-height: 32px;
+	height: 32px;
+	margin-top: 8px;
+	padding: 0;
+	text-align: center;
+	width: 32px;
+}
+
+.screen {
+	background: #D3D3D3;
+	border: 1px solid #D3D3D3;
+	height: 20px;
+	line-height: 20px;
+	margin-right: 5px;
+	margin-top: 30px;
+	padding: 0;
+	text-align: center;
+	width: 100%;
+}
+
+#ticket {
+	font-size: 11pt;
+	h2 {
+		line-height: 22px;
+		font-weight: bold;
+	}
+}
+
+#errorPlaces {
+	color: #B51C1C;
+}
+
+#btnClear {
+	border: none;
+	background: #cecece;
+	height: 32px;
+    padding: 0px 10px;
+    &:hover {
+    	background: #bbb;
+    }
+}

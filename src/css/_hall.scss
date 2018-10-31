@@ -1,0 +1,100 @@
+$main-color: #1a237e;
+$first-color: #e8eaf6;
+$second-color: #c5cae9;
+$hover-color: #7986cb;
+
+#hall {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+}
+
+#screen {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+	height: 24px;
+	background: $main-color;
+	margin-top: 9px;
+	color: #fff;
+}
+
+#hall-screen {
+	flex-direction: column;
+	display: flex;
+}
+
+#hall-section {
+	text-align: center;
+}
+
+#legend {
+	display:flex;
+	align-items: center;
+	margin-bottom: 10px;
+	& .div {
+		display: flex;
+		align-items: center;
+	}
+	& .first {
+		width: 32px;
+		height: 32px;
+		background: $first-color;
+		margin-right: 5px;
+	}
+	& .second {
+		width: 32px;
+		height: 32px;
+		background: $second-color;
+		margin-right: 5px;
+	}
+
+}
+
+#info {
+	display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin-top: 20px;
+    & #name{
+    	display: flex;
+    	align-items: center;
+    	flex-direction: column;
+    	margin-bottom: 10px;
+    }
+}
+
+.numbering {
+	display: flex;
+	align-items: center;
+	width: 33px;
+	height: 33px;
+	margin-bottom: 3px;
+}
+
+.row {
+	margin-bottom: 3px;
+	& button {
+		color: #222;
+		width: 33px;
+		height: 33px;
+		margin-right: 3px;
+		border: none;
+		&:hover {
+			background: $hover-color;
+		}
+		&.price-1 {
+			background: $first-color;
+		}
+		&.price-2 {
+			background: $second-color;
+		}
+		&.booked {
+			background: $main-color;
+			color: white;
+		}
+	}
+}
+

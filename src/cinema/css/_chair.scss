@@ -1,0 +1,38 @@
+.chair {
+	background: #fff;
+	border: none;
+	height: 34px;
+	margin-right: 5px;
+	margin-top: 5px;
+	padding: 0;
+	text-align: center;
+	width: 34px;
+	color: #565656;
+
+	&:hover {
+		color: black;
+	}
+}
+
+.booked {
+	color: #000;
+    background: #cecece;
+	
+	&:hover{
+		background: #989898;
+	}
+}
+
+.priceNumber1 {
+	background: #FFF9C4;
+	&:hover {
+		background: #FDD835;
+	} 
+}
+
+.priceNumber2 {
+	background: #C8E6C9;
+	&:hover {
+		background: #81C784;
+	}
+}
