@@ -81,20 +81,111 @@ $hover-color: #7986cb;
 		width: 33px;
 		height: 33px;
 		margin-right: 3px;
-		border: none;
-		&:hover {
-			background: $hover-color;
-		}
+		border: 2px solid;
 		&.price-1 {
 			background: $first-color;
+			border-color: $first-color;
+			&:hover {
+				background-color: #fff;
+			}
 		}
 		&.price-2 {
 			background: $second-color;
+			border-color: $second-color;
+			&:hover {
+				background-color: #fff;
+			}
 		}
 		&.booked {
 			background: $main-color;
+			border-color: $main-color;
 			color: white;
+			&:hover {
+				background-color: #fff;
+				color: #000;
+			}
+		}
+		&.disabled {
+			background: transparent;
+			border-color: transparent;
+			opacity: 0.6;
+   			cursor: not-allowed;
+			&:hover {
+				background-color: transparent;
+			}
 		}
 	}
 }
 
+.error {
+    margin-top: 10px;
+    & p {
+    	display: flex;
+	    justify-content: center;
+	    padding: 10px;
+	    background-color: #F2DEDE;
+	    color: #A94442;
+    }
+}
+
+.prices_and_button {
+	display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    & button {
+		background-color: #4caf50;
+		height: 33px;
+		padding: 0 20px;
+		border: 2px solid #4caf50;
+		&:hover {
+			background-color: #fff;
+		}
+		&.disabled {
+			opacity: 0.6;
+   			cursor: not-allowed;
+   			&:hover {
+   				background-color: #4caf50;
+   			}
+		}
+    }
+}
+
+.buyScreen {
+	display: flex;
+	justify-content: center;
+    height: 100vh;
+    align-items: center;
+    & p {
+    	text-align: center;
+    }
+    & .buy-inner {
+    	background-color: #E0E1E0;
+    	padding: 25px;
+    }
+    & .bold {
+    	font-weight: bold;
+    }
+}
+
+.toMainScreen {
+	background-color: $main-color;
+	height: 33px;
+	padding: 0 20px;
+	border: 2px solid $main-color;
+	margin-top: 25px;
+	margin-left: 25px;
+	color: #fff;
+	&:hover {
+		background-color: #fff;
+		color: #000;
+	}
+	&.disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		&:hover {
+			background-color: $main-color;
+		}
+	}
+
+}

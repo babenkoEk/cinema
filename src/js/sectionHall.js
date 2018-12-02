@@ -2,9 +2,18 @@ import data from './dataSessions';
 
 const SectionHall = {
 	places: [],
+	placesReverse: [],
 	callbacks: [],
 	maxCountPlaces: 5,
 	countPlaces: 0,
+	state: false,
+
+	placesReverseFunc() {
+		this.placesReverse = this.places.map((elem) => {
+			const hall = elem.hall.reverse();
+			return { ...elem, hall };
+		});
+	},
 
 	fill(places = []) {
 		this.places = places.map(elem => ({
@@ -19,6 +28,7 @@ const SectionHall = {
 				}))
 			}))
 		}));
+		this.placesReverseFunc();
 	},
 
 	subscribe(action, callback) {
@@ -33,16 +43,19 @@ const SectionHall = {
 	},
 
 	changeState(place = {}, state = 0, callback) {
+		const
+			{
+				filmId, sessionId, rowId, chairId
+			} = place;
+
 		if (this.countPlaces < this.maxCountPlaces || state === 0) {
-			const
-				{
-					filmId, sessionId, rowId, chairId
-				} = place;
+			this.state = false;
+
 			if (filmId === undefined || sessionId === undefined || rowId === undefined || chairId === undefined)
 				return false;
 
 			this.places = this.places.map((movie) => {
-				if (movie.idFilm !== filmId && movie.idSession !== sessionId)
+				if (movie.idFilm !== filmId || movie.idSession !== sessionId)
 					return movie;
 
 				const hall = movie.hall.map((row) => {
@@ -62,16 +75,37 @@ const SectionHall = {
 
 				return { ...movie, hall };
 			});
+		} else this.state = true; // для сообщение об ошибке
 
-			if (typeof callback === 'function')
-				callback(this.places.find(el => el.idFilm === filmId && el.idSession === sessionId).hall);
-		}
+		if (typeof callback === 'function')
+			callback(this.places.find(el => el.idFilm === filmId && el.idSession === sessionId).hall);
 		this.event('onchange');
 	},
 
+	changeStateBuy(filmId, sessionId, state) {
+		this.places = this.places.map((movie) => {
+			if (movie.idFilm !== filmId || movie.idSession !== sessionId)
+				return movie;
+
+			const hall = movie.hall.map((row) => {
+				const chairs = row.chairs.map((chair) => {
+					if (chair.state === 1)
+						return { ...chair, state };
+					return chair;
+				});
+
+				return { ...row, chairs };
+			});
+
+			return { ...movie, hall };
+		});
+		this.countPlaces = 0;
+	},
+
 	isMaxPlaces() {
-		return this.countPlaces === this.maxCountPlaces;
+		return this.countPlaces === this.maxCountPlaces && this.state === true;
 	}
+
 };
 
 SectionHall.fill(data);

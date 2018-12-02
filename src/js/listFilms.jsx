@@ -48,11 +48,11 @@ export default class ListFilms extends React.Component {
 		const { selectFilm } = this.state;
 		const { film, session } = selectFilm;
 		if (film > -1)
-			return <Hall film={film} session={session} />;
+			return <Hall film={film} session={session} onClick={() => this.set(-1, -1)} />;
 		return (
 			<div id="mainScreen">{this.renderSection()}</div>
 		);
 	}
 }
 
-SectionHall.subscribe('onchange', () => ListFilms.render);
+//SectionHall.subscribe('onchange', () => ListFilms.render);

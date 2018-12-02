@@ -3,27 +3,59 @@ import PropTypes from 'prop-types';
 import SectionHall from './sectionHall';
 import Chair from './chair';
 
+
 export default class Auditorium extends React.Component {
+	static get propTypes() {
+		return {
+			film: PropTypes.number.isRequired,
+			session: PropTypes.string.isRequired,
+			prices: PropTypes.arrayOf(PropTypes.number).isRequired,
+			onClick: PropTypes.func.isRequired
+		};
+	}
+
 	constructor(props) {
 		super(props);
 
 		this.filmId = this.props.film;
 		this.sessionId = this.props.session;
+		this.prices = this.props.prices;
 
 		this.state = {
-			room: SectionHall.places.find(el => el.idFilm === this.filmId && el.idSession === this.sessionId).hall.reverse()
+			room: SectionHall.places.find(el => el.idFilm === this.filmId && el.idSession === this.sessionId).hall
 		};
 	}
-/*
-	static propTypes = {
-		film: PropTypes.number || 0,
-		session: PropTypes.number || 0
-	}
-*/
+
 	changeState(rowId, chairId, state) {
 		const filmId = this.filmId;
 		const sessionId = this.sessionId;
 		SectionHall.changeState({ filmId, sessionId, rowId, chairId }, state, room => this.setState({ room }));
+	}
+
+	changeStateBuy(filmId, sessionId) {
+		const state = 2;
+		SectionHall.changeStateBuy(filmId, sessionId, state);
+		this.props.onClick();
+	}
+
+	wordDeclension(count) {
+		const word = count === 1 ? 'билет' : 'билета';
+		return (count === 5 ? 'билетов' : word);
+	}
+
+	countPriceTicket() {
+		const { room } = this.state;
+		let count = 0;
+		let sum = 0;
+		room.map(row => (
+			row.chairs.map((chair) => {
+				count = chair.state === 1 ? count + 1 : count;
+				sum = chair.state === 1 ? sum + this.prices[chair.price] : sum;
+			})
+		));
+		return (
+			count > 0 && <div className="prices"><p>{count} {this.wordDeclension(count)} за {sum} &#x20bd;</p></div>
+		);
 	}
 
 	renderChairs() {
@@ -45,16 +77,27 @@ export default class Auditorium extends React.Component {
 	}
 
 	render() {
+		const disabled = this.countPriceTicket() === false ? 'disabled' : '';
 		return (
-			<div id="hall-section">
-				{this.renderChairs()}
+			<div>
+				<div id="hall-section">
+					{this.renderChairs()}
+				</div>
+				<div id="screen">Экран</div>
+				<div className="prices_and_button">
+					<div>{this.countPriceTicket()}</div>
+					<div>
+						{
+							<button type="submit" disabled={this.countPriceTicket() === false} className={disabled} onClick={() => this.changeStateBuy(this.filmId, this.sessionId)}>Купить</button>
+						}
+					</div>
+				</div>
+				<div className="error">
+					{
+						SectionHall.isMaxPlaces() && <p>Внимание! Для выбора доступно не более 5 мест</p>
+					}
+				</div>
 			</div>
 		);
 	}
 }
-/*
-Auditorium.propTypes = {
-	film: PropTypes.number.isRequired,
-	session: PropTypes.string.isRequired
-};
-*/

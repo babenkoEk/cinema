@@ -837,10 +837,18 @@
 
 	var SectionHall = {
 		places: [],
+		placesReverse: [],
 		callbacks: [],
 		maxCountPlaces: 5,
 		countPlaces: 0,
+		state: false,
 
+		placesReverseFunc: function placesReverseFunc() {
+			this.placesReverse = this.places.map(function (elem) {
+				var hall = elem.hall.reverse();
+				return _extends({}, elem, { hall: hall });
+			});
+		},
 		fill: function fill() {
 			var places = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
@@ -862,6 +870,7 @@
 					})
 				};
 			});
+			this.placesReverseFunc();
 		},
 		subscribe: function subscribe(action, callback) {
 			this.callbacks.push({ action: action, callback: callback });
@@ -878,17 +887,19 @@
 
 			var state = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 			var callback = arguments[2];
+			var filmId = place.filmId,
+			    sessionId = place.sessionId,
+			    rowId = place.rowId,
+			    chairId = place.chairId;
+
 
 			if (this.countPlaces < this.maxCountPlaces || state === 0) {
-				var filmId = place.filmId,
-				    sessionId = place.sessionId,
-				    rowId = place.rowId,
-				    chairId = place.chairId;
+				this.state = false;
 
 				if (filmId === undefined || sessionId === undefined || rowId === undefined || chairId === undefined) return false;
 
 				this.places = this.places.map(function (movie) {
-					if (movie.idFilm !== filmId && movie.idSession !== sessionId) return movie;
+					if (movie.idFilm !== filmId || movie.idSession !== sessionId) return movie;
 
 					var hall = movie.hall.map(function (row) {
 						if (row.id !== rowId) return row;
@@ -904,15 +915,32 @@
 
 					return _extends({}, movie, { hall: hall });
 				});
+			} else this.state = true; // для сообщение об ошибке
 
-				if (typeof callback === 'function') callback(this.places.find(function (el) {
-					return el.idFilm === filmId && el.idSession === sessionId;
-				}).hall);
-			}
+			if (typeof callback === 'function') callback(this.places.find(function (el) {
+				return el.idFilm === filmId && el.idSession === sessionId;
+			}).hall);
 			this.event('onchange');
 		},
+		changeStateBuy: function changeStateBuy(filmId, sessionId, state) {
+			this.places = this.places.map(function (movie) {
+				if (movie.idFilm !== filmId || movie.idSession !== sessionId) return movie;
+
+				var hall = movie.hall.map(function (row) {
+					var chairs = row.chairs.map(function (chair) {
+						if (chair.state === 1) return _extends({}, chair, { state: state });
+						return chair;
+					});
+
+					return _extends({}, row, { chairs: chairs });
+				});
+
+				return _extends({}, movie, { hall: hall });
+			});
+			this.countPlaces = 0;
+		},
 		isMaxPlaces: function isMaxPlaces() {
-			return this.countPlaces === this.maxCountPlaces;
+			return this.countPlaces === this.maxCountPlaces && this.state === true;
 		}
 	};
 
@@ -925,10 +953,11 @@
 
 		var classPrice = price === 0 ? 'price-1' : 'price-2';
 		var style = state === 1 ? 'booked' : classPrice;
+		style = state === 2 ? 'disabled' : style;
 
 		return react.createElement(
 			'button',
-			{ className: style, onClick: function onClick() {
+			{ className: style, disabled: state === 2, onClick: function onClick() {
 					return props.onClick();
 				} },
 			value
@@ -944,19 +973,31 @@
 
 	var Auditorium = function (_React$Component) {
 		inherits(Auditorium, _React$Component);
+		createClass(Auditorium, null, [{
+			key: 'propTypes',
+			get: function get$$1() {
+				return {
+					film: propTypes.number.isRequired,
+					session: propTypes.string.isRequired,
+					prices: propTypes.arrayOf(propTypes.number).isRequired,
+					onClick: propTypes.func.isRequired
+				};
+			}
+		}]);
 
 		function Auditorium(props) {
 			classCallCheck(this, Auditorium);
 
 			var _this = possibleConstructorReturn(this, (Auditorium.__proto__ || Object.getPrototypeOf(Auditorium)).call(this, props));
 
-			_this.filmId = props.film;
-			_this.sessionId = props.session;
+			_this.filmId = _this.props.film;
+			_this.sessionId = _this.props.session;
+			_this.prices = _this.props.prices;
 
 			_this.state = {
 				room: SectionHall.places.find(function (el) {
 					return el.idFilm === _this.filmId && el.idSession === _this.sessionId;
-				}).hall.reverse()
+				}).hall
 			};
 			return _this;
 		}
@@ -973,9 +1014,52 @@
 				});
 			}
 		}, {
+			key: 'changeStateBuy',
+			value: function changeStateBuy(filmId, sessionId) {
+				var state = 2;
+				SectionHall.changeStateBuy(filmId, sessionId, state);
+				this.props.onClick();
+			}
+		}, {
+			key: 'wordDeclension',
+			value: function wordDeclension(count) {
+				var word = count === 1 ? 'билет' : 'билета';
+				return count === 5 ? 'билетов' : word;
+			}
+		}, {
+			key: 'countPriceTicket',
+			value: function countPriceTicket() {
+				var _this3 = this;
+
+				var room = this.state.room;
+
+				var count = 0;
+				var sum = 0;
+				room.map(function (row) {
+					return row.chairs.map(function (chair) {
+						count = chair.state === 1 ? count + 1 : count;
+						sum = chair.state === 1 ? sum + _this3.prices[chair.price] : sum;
+					});
+				});
+				return count > 0 && react.createElement(
+					'div',
+					{ className: 'prices' },
+					react.createElement(
+						'p',
+						null,
+						count,
+						' ',
+						this.wordDeclension(count),
+						' \u0437\u0430 ',
+						sum,
+						' \u20BD'
+					)
+				);
+			}
+		}, {
 			key: 'renderChairs',
 			value: function renderChairs() {
-				var _this3 = this;
+				var _this4 = this;
 
 				var room = this.state.room;
 
@@ -989,7 +1073,7 @@
 								state: chair.state,
 								price: chair.price,
 								onClick: function onClick(event) {
-									return _this3.changeState(row.id, chair.id, chair.state ? 0 : 1);
+									return _this4.changeState(row.id, chair.id, chair.state ? 0 : 1);
 								}
 							});
 						})
@@ -1000,133 +1084,334 @@
 		}, {
 			key: 'render',
 			value: function render() {
+				var _this5 = this;
+
+				var disabled = this.countPriceTicket() === false ? 'disabled' : '';
 				return react.createElement(
 					'div',
-					{ id: 'hall-section' },
-					this.renderChairs()
+					null,
+					react.createElement(
+						'div',
+						{ id: 'hall-section' },
+						this.renderChairs()
+					),
+					react.createElement(
+						'div',
+						{ id: 'screen' },
+						'\u042D\u043A\u0440\u0430\u043D'
+					),
+					react.createElement(
+						'div',
+						{ className: 'prices_and_button' },
+						react.createElement(
+							'div',
+							null,
+							this.countPriceTicket()
+						),
+						react.createElement(
+							'div',
+							null,
+							react.createElement(
+								'button',
+								{ type: 'submit', disabled: this.countPriceTicket() === false, className: disabled, onClick: function onClick() {
+										return _this5.changeStateBuy(_this5.filmId, _this5.sessionId);
+									} },
+								'\u041A\u0443\u043F\u0438\u0442\u044C'
+							)
+						)
+					),
+					react.createElement(
+						'div',
+						{ className: 'error' },
+						SectionHall.isMaxPlaces() && react.createElement(
+							'p',
+							null,
+							'\u0412\u043D\u0438\u043C\u0430\u043D\u0438\u0435! \u0414\u043B\u044F \u0432\u044B\u0431\u043E\u0440\u0430 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E \u043D\u0435 \u0431\u043E\u043B\u0435\u0435 5 \u043C\u0435\u0441\u0442'
+						)
+					)
 				);
 			}
 		}]);
 		return Auditorium;
 	}(react.Component);
 
+	function BuyScreen(props) {
+		var film = props.film,
+		    session = props.session;
 
-	Auditorium.propTypes = {
-		film: propTypes.number.isRequired,
-		session: propTypes.string.isRequired
-	};
-
-	function Hall(props) {
-		var film = props.film;
-		var session = props.session;
-		var films = Films.films;
-
-		var info = films.find(function (el) {
+		var info = Films.films.find(function (el) {
 			return el.id === film;
 		});
-		var selectHall = SectionHall.places.find(function (el) {
+		var room = SectionHall.places.find(function (el) {
 			return el.idFilm === film && el.idSession === session;
 		}).hall;
-		var numberOfRow = selectHall.map(function (row) {
-			return row.id;
-		}).reverse();
-		var isError = SectionHall.isMaxPlaces();
-		console.log('renderHall');
 
 		return react.createElement(
 			'div',
 			null,
 			react.createElement(
+				'button',
+				{ className: 'toMainScreen', onClick: function onClick() {
+						return props.onClick();
+					} },
+				'\u041D\u0430 \u0433\u043B\u0430\u0432\u043D\u0443\u044E'
+			),
+			react.createElement(
 				'div',
-				{ id: 'info' },
+				{ className: 'buyScreen' },
 				react.createElement(
 					'div',
-					{ id: 'name' },
+					{ className: 'buy-inner' },
 					react.createElement(
-						'h1',
+						'p',
+						{ className: 'bold' },
+						'\u0421\u043F\u0430\u0441\u0438\u0431\u043E \u0437\u0430 \u043F\u043E\u043A\u0443\u043F\u043A\u0443!'
+					),
+					react.createElement(
+						'p',
 						null,
+						'\u0418\u043D\u0444\u043E\u0440\u043C\u0430\u0446\u0438\u044F \u043E \u0437\u0430\u043A\u0430\u0437\u0435:'
+					),
+					react.createElement(
+						'p',
+						null,
+						'\u041D\u0430\u0437\u0432\u0430\u043D\u0438\u0435 \u0444\u0438\u043B\u044C\u043C\u0430: ',
 						info.name
 					),
 					react.createElement(
 						'p',
 						null,
-						info.genre
+						'\u0412\u0440\u0435\u043C\u044F \u0441\u0435\u0430\u043D\u0441\u0430:',
+						info.sessions.find(function (el) {
+							return el.id === session;
+						}).time
 					),
 					react.createElement(
 						'p',
 						null,
-						'\u041D\u0430\u0447\u0430\u043B\u043E \u0441\u0435\u0430\u043D\u0441\u0430:',
-						info.sessions.find(function (el) {
-							return el.id === session;
-						}).time
-					)
-				),
-				react.createElement(
-					'div',
-					{ id: 'legend' },
-					react.createElement(
-						'div',
-						{ className: 'div' },
-						react.createElement('div', { className: 'first' }),
-						react.createElement(
-							'p',
-							null,
-							'\u0426\u0435\u043D\u0430: 300 \u0440\u0443\u0431.'
-						)
+						'\u041A\u0443\u043F\u043B\u0435\u043D\u043D\u044B\u0435 \u043C\u0435\u0441\u0442\u0430:',
+						room.map(function (row) {
+							return row.chairs.map(function (chair) {
+								return chair.state === 2 ? react.createElement(
+									'p',
+									null,
+									'\u0440\u044F\u0434: ',
+									row.id,
+									', \u043C\u0435\u0441\u0442\u043E: ',
+									chair.id
+								) : null;
+							});
+						})
 					),
 					react.createElement(
-						'div',
-						{ className: 'div' },
-						react.createElement('div', { className: 'second' }),
-						react.createElement(
-							'p',
-							null,
-							'\u0426\u0435\u043D\u0430: 350 \u0440\u0443\u0431.'
-						)
+						'p',
+						{ className: 'bold' },
+						'\u041D\u043E\u043C\u0435\u0440 \u0437\u0430\u043A\u0430\u0437\u0430: ',
+						Math.floor(Math.random() * 10000)
 					)
-				)
-			),
-			react.createElement(
-				'div',
-				{ id: 'hall' },
-				react.createElement(
-					'div',
-					null,
-					numberOfRow.map(function (row) {
-						return react.createElement(
-							'div',
-							{ className: 'numbering' },
-							row
-						);
-					})
-				),
-				react.createElement(
-					'div',
-					{ id: 'hall-screen' },
-					react.createElement(Auditorium, { film: film, session: session }),
-					react.createElement(
-						'div',
-						{ id: 'screen' },
-						'\u042D\u043A\u0440\u0430\u043D'
-					)
-				)
-			),
-			react.createElement(
-				'div',
-				null,
-				SectionHall.isMaxPlaces() && react.createElement(
-					'p',
-					null,
-					'\u041E\u0448\u0438\u0431\u043A\u0430!'
 				)
 			)
 		);
 	}
 
-	Hall.propTypes = {
+	BuyScreen.propTypes = {
 		film: propTypes.number.isRequired,
 		session: propTypes.string.isRequired
 	};
+
+	var Hall = function (_React$Component) {
+		inherits(Hall, _React$Component);
+		createClass(Hall, null, [{
+			key: 'propTypes',
+			get: function get$$1() {
+				return {
+					film: propTypes.number.isRequired,
+					session: propTypes.string.isRequired,
+					onClick: propTypes.func.isRequired
+				};
+			}
+		}]);
+
+		function Hall(props) {
+			classCallCheck(this, Hall);
+
+			var _this = possibleConstructorReturn(this, (Hall.__proto__ || Object.getPrototypeOf(Hall)).call(this, props));
+
+			var _this$props = _this.props,
+			    film = _this$props.film,
+			    session = _this$props.session;
+
+
+			_this.films = Films.films;
+			_this.info = _this.films.find(function (el) {
+				return el.id === film;
+			});
+			_this.selectHall = SectionHall.places.find(function (el) {
+				return el.idFilm === film && el.idSession === session;
+			}) ? SectionHall.places.find(function (el) {
+				return el.idFilm === film && el.idSession === session;
+			}).hall : 0;
+			_this.numberOfRow = _this.selectHall !== 0 ? _this.selectHall.map(function (row) {
+				return row.id;
+			}).reverse() : 0;
+
+			_this.state = {
+				buy: 0,
+				film: film,
+				session: session
+			};
+
+			_this.changeState = _this.changeState.bind(_this);
+			return _this;
+		}
+
+		createClass(Hall, [{
+			key: 'changeState',
+			value: function changeState(value) {
+				this.setState({
+					buy: value
+				});
+			}
+		}, {
+			key: 'changeStateToMainScreen',
+			value: function changeStateToMainScreen(filmId, sessionId) {
+				var state = 0;
+				SectionHall.changeStateBuy(filmId, sessionId, state);
+				this.props.onClick();
+			}
+		}, {
+			key: 'render',
+			value: function render() {
+				var _this2 = this;
+
+				var info = this.info;
+				var numberOfRow = this.numberOfRow;
+				var selectHall = this.selectHall;
+				var _state = this.state,
+				    film = _state.film,
+				    session = _state.session,
+				    buy = _state.buy;
+
+
+				if (selectHall === 0) return react.createElement(
+					'div',
+					null,
+					react.createElement(
+						'button',
+						{ className: 'toMainScreen', onClick: function onClick() {
+								return _this2.props.onClick();
+							} },
+						'\u041D\u0430 \u0433\u043B\u0430\u0432\u043D\u0443\u044E'
+					),
+					react.createElement(
+						'div',
+						{ className: 'oops' },
+						react.createElement(
+							'p',
+							null,
+							'Ooops...I\'m sorry'
+						)
+					)
+				);
+				if (buy === 1) return react.createElement(
+					'div',
+					null,
+					react.createElement(BuyScreen, { film: film, session: session, onClick: function onClick() {
+							return _this2.props.onClick();
+						} })
+				);
+				return react.createElement(
+					'div',
+					null,
+					react.createElement(
+						'button',
+						{ className: 'toMainScreen', onClick: function onClick() {
+								return _this2.changeStateToMainScreen(film, session);
+							} },
+						'\u041D\u0430 \u0433\u043B\u0430\u0432\u043D\u0443\u044E'
+					),
+					react.createElement(
+						'div',
+						{ id: 'info' },
+						react.createElement(
+							'div',
+							{ id: 'name' },
+							react.createElement(
+								'h1',
+								null,
+								info.name
+							),
+							react.createElement(
+								'p',
+								null,
+								info.genre
+							),
+							react.createElement(
+								'p',
+								null,
+								'\u041D\u0430\u0447\u0430\u043B\u043E \u0441\u0435\u0430\u043D\u0441\u0430:',
+								info.sessions.find(function (el) {
+									return el.id === session;
+								}).time
+							)
+						),
+						react.createElement(
+							'div',
+							{ id: 'legend' },
+							react.createElement(
+								'div',
+								{ className: 'div' },
+								react.createElement('div', { className: 'first' }),
+								react.createElement(
+									'p',
+									null,
+									'\u0426\u0435\u043D\u0430: 300 \u0440\u0443\u0431.'
+								)
+							),
+							react.createElement(
+								'div',
+								{ className: 'div' },
+								react.createElement('div', { className: 'second' }),
+								react.createElement(
+									'p',
+									null,
+									'\u0426\u0435\u043D\u0430: 350 \u0440\u0443\u0431.'
+								)
+							)
+						)
+					),
+					react.createElement(
+						'div',
+						{ id: 'hall' },
+						react.createElement(
+							'div',
+							null,
+							numberOfRow.map(function (row) {
+								return react.createElement(
+									'div',
+									{ className: 'numbering' },
+									row
+								);
+							})
+						),
+						react.createElement(
+							'div',
+							{ id: 'hall-screen' },
+							react.createElement(Auditorium, {
+								film: film,
+								session: session,
+								prices: [300, 350],
+								onClick: function onClick() {
+									return _this2.changeState(1);
+								}
+							})
+						)
+					)
+				);
+			}
+		}]);
+		return Hall;
+	}(react.Component);
 
 	var ListFilms = function (_React$Component) {
 		inherits(ListFilms, _React$Component);
@@ -1180,11 +1465,15 @@
 		}, {
 			key: 'render',
 			value: function render() {
+				var _this3 = this;
+
 				var selectFilm = this.state.selectFilm;
 				var film = selectFilm.film,
 				    session = selectFilm.session;
 
-				if (film > -1) return react.createElement(Hall, { film: film, session: session });
+				if (film > -1) return react.createElement(Hall, { film: film, session: session, onClick: function onClick() {
+						return _this3.set(-1, -1);
+					} });
 				return react.createElement(
 					'div',
 					{ id: 'mainScreen' },
@@ -1194,11 +1483,6 @@
 		}]);
 		return ListFilms;
 	}(react.Component);
-
-
-	SectionHall.subscribe('onchange', function () {
-		return ListFilms.render;
-	});
 
 	var render = function render() {
 		reactDom.render(react.createElement(ListFilms, null), document.getElementById('root'));
