@@ -22,7 +22,10 @@ export default class Hall extends React.Component {
 
 		this.films = Films.films;
 		this.info = this.films.find(el => el.id === film);
-		this.selectHall = SectionHall.places.find(el => el.idFilm === film && el.idSession === session) ? SectionHall.places.find(el => el.idFilm === film && el.idSession === session).hall : 0;
+
+		const place = SectionHall.places.find(el => el.idFilm === film && el.idSession === session);
+		this.selectHall = place ? place.hall : 0;
+
 		this.numberOfRow = this.selectHall !== 0 ? this.selectHall.map(row => (row.id)).reverse() : 0;
 
 		this.state = {
@@ -47,19 +50,21 @@ export default class Hall extends React.Component {
 	}
 
 	render() {
-		const info = this.info;
+		const { info, numberOfRow, selectHall } = this;
+		/* const info = this.info;
 		const numberOfRow = this.numberOfRow;
-		const selectHall = this.selectHall;
+		const selectHall = this.selectHall; */
 		const { film, session, buy } = this.state;
 
-		if (selectHall === 0)
+		if (selectHall === 0) {
 			return (
 				<div>
 					<button className="toMainScreen" onClick={() => this.props.onClick() }>На главную</button>
 					<div className="oops">
-						<p>Ooops...I'm sorry</p>
+						<p>Ooops...I am sorry</p>
 					</div>
 				</div>);
+		}
 		if (buy === 1)
 			return <div><BuyScreen film={film} session={session} onClick={() => this.props.onClick()} /></div>;
 		return (
@@ -76,11 +81,11 @@ export default class Hall extends React.Component {
 					</div>
 					<div id="legend">
 						<div className="div">
-							<div className="first"></div>
+							<div className="first" />
 							<p>Цена: 300 руб.</p>
 						</div>
 						<div className="div">
-							<div className="second"></div>
+							<div className="second" />
 							<p>Цена: 350 руб.</p>
 						</div>
 					</div>

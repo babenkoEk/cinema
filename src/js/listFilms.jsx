@@ -3,7 +3,7 @@ import React from 'react';
 import Films from './dataFilms';
 import Section from './section';
 import Hall from './hall';
-import SectionHall from './sectionHall';
+// import SectionHall from './sectionHall';
 
 export default class ListFilms extends React.Component {
 	constructor(props) {
@@ -55,4 +55,4 @@ export default class ListFilms extends React.Component {
 	}
 }
 
-//SectionHall.subscribe('onchange', () => ListFilms.render);
+// SectionHall.subscribe('onchange', () => ListFilms.render);

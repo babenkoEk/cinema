@@ -19,7 +19,7 @@ function Section(props) {
 
 	return (
 		<div className="section">
-			<div className="sectionImg" style={imgStyle}></div>
+			<div className="sectionImg" style={imgStyle} />
 			<div className="sectionInfo">
 				<div className="sectionHeader">
 					<h2>{name}</h2>

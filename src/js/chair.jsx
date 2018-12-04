@@ -3,9 +3,19 @@ import PropTypes from 'prop-types';
 
 export default function Chair(props) {
 	const { value, state, price } = props;
-	const classPrice = price === 0 ? 'price-1' : 'price-2';
-	let style = state === 1 ? 'booked' : classPrice;
-	style = state === 2 ? 'disabled' : style;
+	const classPrice = !price ? 'price-1' : 'price-2';
+
+	let style;
+	switch (state) {
+		case 1:
+			style = 'booked';
+			break;
+		case 2:
+			style = 'disabled';
+			break;
+		default:
+			style = classPrice;
+	}
 
 	return (
 		<button className={style} disabled={state === 2} onClick={() => props.onClick()}>

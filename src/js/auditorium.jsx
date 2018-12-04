@@ -5,6 +5,12 @@ import Chair from './chair';
 
 
 export default class Auditorium extends React.Component {
+	static wordDeclension(count) {
+		const word = count === 1 ? 'билет' : 'билета';
+		return (count === 5 ? 'билетов' : word);
+	}
+
+
 	static get propTypes() {
 		return {
 			film: PropTypes.number.isRequired,
@@ -17,9 +23,14 @@ export default class Auditorium extends React.Component {
 	constructor(props) {
 		super(props);
 
-		this.filmId = this.props.film;
-		this.sessionId = this.props.session;
-		this.prices = this.props.prices;
+		const {
+			film, session, prices, onClick
+		} = this.props;
+
+		this.filmId = film;
+		this.sessionId = session;
+		this.prices = prices;
+		this.onClick = onClick;
 
 		this.state = {
 			room: SectionHall.places.find(el => el.idFilm === this.filmId && el.idSession === this.sessionId).hall
@@ -27,20 +38,20 @@ export default class Auditorium extends React.Component {
 	}
 
 	changeState(rowId, chairId, state) {
-		const filmId = this.filmId;
-		const sessionId = this.sessionId;
-		SectionHall.changeState({ filmId, sessionId, rowId, chairId }, state, room => this.setState({ room }));
+		const { filmId, sessionId } = this; // !!!!
+		SectionHall.changeState(
+			{
+				filmId, sessionId, rowId, chairId
+			},
+			state,
+			room => this.setState({ room })
+		);
 	}
 
 	changeStateBuy(filmId, sessionId) {
 		const state = 2;
 		SectionHall.changeStateBuy(filmId, sessionId, state);
-		this.props.onClick();
-	}
-
-	wordDeclension(count) {
-		const word = count === 1 ? 'билет' : 'билета';
-		return (count === 5 ? 'билетов' : word);
+		this.onClick();
 	}
 
 	countPriceTicket() {
@@ -54,7 +65,14 @@ export default class Auditorium extends React.Component {
 			})
 		));
 		return (
-			count > 0 && <div className="prices"><p>{count} {this.wordDeclension(count)} за {sum} &#x20bd;</p></div>
+			count > 0 && (
+				<div className="prices">
+					<p>
+						{`${count} ${Auditorium.wordDeclension(count)} за ${sum}`}
+						&#x20bd;
+					</p>
+				</div>
+			)
 		);
 	}
 
@@ -68,7 +86,7 @@ export default class Auditorium extends React.Component {
 							value={chair.id}
 							state={chair.state}
 							price={chair.price}
-							onClick={(event) => this.changeState(row.id, chair.id, chair.state ? 0 : 1)}
+							onClick={() => this.changeState(row.id, chair.id, chair.state ? 0 : 1)}
 						/>))
 				}
 			</div>

@@ -29,7 +29,8 @@ module.exports = {
 		"no-trailing-spaces": 1,
 		"react/jsx-indent": ["error", "tab"],
 		"react/jsx-indent-props": ["error", "tab"],
-		"nonblock-statement-body-position": "off"
+		"nonblock-statement-body-position": "off",
+		"react/jsx-one-expression-per-line": "off"
 	},
 	"env": {
 		"browser": true

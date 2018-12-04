@@ -844,9 +844,10 @@
 		state: false,
 
 		placesReverseFunc: function placesReverseFunc() {
-			this.placesReverse = this.places.map(function (elem) {
-				var hall = elem.hall.reverse();
-				return _extends({}, elem, { hall: hall });
+			this.places = this.places.map(function (elem) {
+				var hall = elem.hall;
+
+				return _extends({}, elem, { hall: hall.reverse() });
 			});
 		},
 		fill: function fill() {
@@ -951,9 +952,19 @@
 		    state = props.state,
 		    price = props.price;
 
-		var classPrice = price === 0 ? 'price-1' : 'price-2';
-		var style = state === 1 ? 'booked' : classPrice;
-		style = state === 2 ? 'disabled' : style;
+		var classPrice = !price ? 'price-1' : 'price-2';
+
+		var style = void 0;
+		switch (state) {
+			case 1:
+				style = 'booked';
+				break;
+			case 2:
+				style = 'disabled';
+				break;
+			default:
+				style = classPrice;
+		}
 
 		return react.createElement(
 			'button',
@@ -974,6 +985,12 @@
 	var Auditorium = function (_React$Component) {
 		inherits(Auditorium, _React$Component);
 		createClass(Auditorium, null, [{
+			key: 'wordDeclension',
+			value: function wordDeclension(count) {
+				var word = count === 1 ? 'билет' : 'билета';
+				return count === 5 ? 'билетов' : word;
+			}
+		}, {
 			key: 'propTypes',
 			get: function get$$1() {
 				return {
@@ -990,9 +1007,17 @@
 
 			var _this = possibleConstructorReturn(this, (Auditorium.__proto__ || Object.getPrototypeOf(Auditorium)).call(this, props));
 
-			_this.filmId = _this.props.film;
-			_this.sessionId = _this.props.session;
-			_this.prices = _this.props.prices;
+			var _this$props = _this.props,
+			    film = _this$props.film,
+			    session = _this$props.session,
+			    prices = _this$props.prices,
+			    onClick = _this$props.onClick;
+
+
+			_this.filmId = film;
+			_this.sessionId = session;
+			_this.prices = prices;
+			_this.onClick = onClick;
 
 			_this.state = {
 				room: SectionHall.places.find(function (el) {
@@ -1007,9 +1032,12 @@
 			value: function changeState(rowId, chairId, state) {
 				var _this2 = this;
 
-				var filmId = this.filmId;
-				var sessionId = this.sessionId;
-				SectionHall.changeState({ filmId: filmId, sessionId: sessionId, rowId: rowId, chairId: chairId }, state, function (room) {
+				var filmId = this.filmId,
+				    sessionId = this.sessionId; // !!!!
+
+				SectionHall.changeState({
+					filmId: filmId, sessionId: sessionId, rowId: rowId, chairId: chairId
+				}, state, function (room) {
 					return _this2.setState({ room: room });
 				});
 			}
@@ -1018,13 +1046,7 @@
 			value: function changeStateBuy(filmId, sessionId) {
 				var state = 2;
 				SectionHall.changeStateBuy(filmId, sessionId, state);
-				this.props.onClick();
-			}
-		}, {
-			key: 'wordDeclension',
-			value: function wordDeclension(count) {
-				var word = count === 1 ? 'билет' : 'билета';
-				return count === 5 ? 'билетов' : word;
+				this.onClick();
 			}
 		}, {
 			key: 'countPriceTicket',
@@ -1047,12 +1069,8 @@
 					react.createElement(
 						'p',
 						null,
-						count,
-						' ',
-						this.wordDeclension(count),
-						' \u0437\u0430 ',
-						sum,
-						' \u20BD'
+						count + ' ' + Auditorium.wordDeclension(count) + ' \u0437\u0430 ' + sum,
+						'\u20BD'
 					)
 				);
 			}
@@ -1072,7 +1090,7 @@
 								value: chair.id,
 								state: chair.state,
 								price: chair.price,
-								onClick: function onClick(event) {
+								onClick: function onClick() {
 									return _this4.changeState(row.id, chair.id, chair.state ? 0 : 1);
 								}
 							});
@@ -1246,11 +1264,12 @@
 			_this.info = _this.films.find(function (el) {
 				return el.id === film;
 			});
-			_this.selectHall = SectionHall.places.find(function (el) {
+
+			var place = SectionHall.places.find(function (el) {
 				return el.idFilm === film && el.idSession === session;
-			}) ? SectionHall.places.find(function (el) {
-				return el.idFilm === film && el.idSession === session;
-			}).hall : 0;
+			});
+			_this.selectHall = place ? place.hall : 0;
+
 			_this.numberOfRow = _this.selectHall !== 0 ? _this.selectHall.map(function (row) {
 				return row.id;
 			}).reverse() : 0;
@@ -1284,35 +1303,41 @@
 			value: function render() {
 				var _this2 = this;
 
-				var info = this.info;
-				var numberOfRow = this.numberOfRow;
-				var selectHall = this.selectHall;
+				var info = this.info,
+				    numberOfRow = this.numberOfRow,
+				    selectHall = this.selectHall;
+				/* const info = this.info;
+	   const numberOfRow = this.numberOfRow;
+	   const selectHall = this.selectHall; */
+
 				var _state = this.state,
 				    film = _state.film,
 				    session = _state.session,
 				    buy = _state.buy;
 
 
-				if (selectHall === 0) return react.createElement(
-					'div',
-					null,
-					react.createElement(
-						'button',
-						{ className: 'toMainScreen', onClick: function onClick() {
-								return _this2.props.onClick();
-							} },
-						'\u041D\u0430 \u0433\u043B\u0430\u0432\u043D\u0443\u044E'
-					),
-					react.createElement(
+				if (selectHall === 0) {
+					return react.createElement(
 						'div',
-						{ className: 'oops' },
+						null,
 						react.createElement(
-							'p',
-							null,
-							'Ooops...I\'m sorry'
+							'button',
+							{ className: 'toMainScreen', onClick: function onClick() {
+									return _this2.props.onClick();
+								} },
+							'\u041D\u0430 \u0433\u043B\u0430\u0432\u043D\u0443\u044E'
+						),
+						react.createElement(
+							'div',
+							{ className: 'oops' },
+							react.createElement(
+								'p',
+								null,
+								'Ooops...I am sorry'
+							)
 						)
-					)
-				);
+					);
+				}
 				if (buy === 1) return react.createElement(
 					'div',
 					null,
@@ -1412,6 +1437,8 @@
 		}]);
 		return Hall;
 	}(react.Component);
+
+	// import SectionHall from './sectionHall';
 
 	var ListFilms = function (_React$Component) {
 		inherits(ListFilms, _React$Component);

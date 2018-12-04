@@ -18,7 +18,9 @@ export default function BuyScreen(props) {
 					<p>Название фильма: {info.name}</p>
 					<p>
 						Время сеанса:
-						{info.sessions.find(el => el.id === session).time}
+						{
+							info.sessions.find(el => el.id === session).time
+						}
 					</p>
 					<p>
 						Купленные места:

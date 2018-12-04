@@ -2,16 +2,15 @@ import data from './dataSessions';
 
 const SectionHall = {
 	places: [],
-	placesReverse: [],
 	callbacks: [],
 	maxCountPlaces: 5,
 	countPlaces: 0,
 	state: false,
 
 	placesReverseFunc() {
-		this.placesReverse = this.places.map((elem) => {
-			const hall = elem.hall.reverse();
-			return { ...elem, hall };
+		this.places = this.places.map((elem) => {
+			const { hall } = elem;
+			return { ...elem, hall: hall.reverse() };
 		});
 	},
 
